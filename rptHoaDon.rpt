@@ -1,0 +1,36 @@
+private void FrmHoaDon_Load(object sender, EventArgs e)
+{
+    try
+    {
+        using (SqlConnection conn = new SqlConnection(
+            @"Data Source=.;Initial Catalog=QLKhachSan;Integrated Security=True"))
+        {
+            SqlDataAdapter da = new SqlDataAdapter("sp_GenerateInvoiceReport", conn);
+            da.SelectCommand.CommandType = CommandType.StoredProcedure;
+            da.SelectCommand.Parameters.AddWithValue("@MaDK", _maDK);
+
+            DataSet ds = new DataSet();
+            da.Fill(ds);
+
+            if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu hóa đơn");
+                return;
+            }
+
+            ReportDocument rpt = new ReportDocument();
+
+            string path = System.IO.Path.Combine(Application.StartupPath, "rptHoaDon.rpt");
+            rpt.Load(path);
+
+            rpt.SetDataSource(ds.Tables[0]);
+
+            crystalReportViewer1.ReportSource = rpt;
+            crystalReportViewer1.Refresh();
+        }
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show(ex.Message);
+    }
+}
